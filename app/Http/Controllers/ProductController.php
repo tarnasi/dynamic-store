@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
@@ -29,18 +30,23 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:products',
-            'image' => 'required|file|mimes:jpeg,png,jpg,gif|max:2048', // Image file validation
-            'category_id' => 'required|exists:categories,id',
+        $validator = Validator::make($request->all(), [
+            'title' => 'bail|required|string|max:255',
+            'slug' => 'bail|required|string|max:255|unique:products',
+            'image' => 'bail|required|file|mimes:jpeg,png,jpg,gif|max:2048',
+            'category_id' => 'bail|required|exists:categories,id',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
 
         // Handle the file upload
         $file = $request->file('image');
         $filePath = $file->store('images', 'public'); // Save to 'storage/app/public/images'
 
         // Save product with the image path
+        $validated = $validator->validated();
         $product = Product::create([
             'title' => $validated['title'],
             'slug' => $validated['slug'],
