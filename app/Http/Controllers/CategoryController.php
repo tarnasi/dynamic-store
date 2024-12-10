@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
 
 class CategoryController extends Controller
 {
@@ -31,10 +33,12 @@ class CategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:40',
-            'slug' => 'required|string|max:40'
         ]);
 
-        $category = Category::create($validated);
+        $category = Category::create([
+            "name" => $validated['name'],
+            "slug" => Str::slug($validated['name'])
+        ]);
         return response()->json($category, 201);
     }
 
@@ -49,9 +53,7 @@ class CategoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Category $category)
-    {
-    }
+    public function edit(Category $category) {}
 
     /**
      * Update the specified resource in storage.
